@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,9 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'UserManagement',
+    # 'UserManagement',
     'rest_framework',
-    'drf_yasg'
+    'drf_yasg',
+    'Organization',
 ]
 
 MIDDLEWARE = [
@@ -69,6 +71,47 @@ TEMPLATES = [
         },
     },
 ]
+
+
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,  # Disable session authentication in Swagger UI
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+        },
+    },
+}
+
+REST_FRAMEWORK = {
+    # Other settings
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        # Other authentication classes
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    # More settings if needed
+}
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',  # For anonymous users
+        'rest_framework.throttling.UserRateThrottle',  # For authenticated users
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '10/minute',  # Anonymous users are limited to 10 requests per minute
+        'user': '100/day',   # Authenticated users are limited to 1000 requests per day
+        'burst': '5/second',  # A custom "burst" scope allows 5 requests per second
+    }
+}
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=59),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "UPDATE_LAST_LOGIN": False,
+}
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
@@ -125,13 +168,3 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ],
-}
